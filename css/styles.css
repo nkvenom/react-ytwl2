@@ -1,0 +1,33 @@
+.vid_list {
+  display: flex;
+  flex-direction: column;
+}
+
+.vid-item {
+  height: 120px;
+  display: flex;
+  flex-direction: row;
+}
+
+.vid-item-details {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+
+.vid-item-thumb {
+  padding: 10px;
+}
+
+.vid-item-controls  {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.action-links a {
+  margin-left: 10px;
+}
+
+body { padding-top: 70px; }
