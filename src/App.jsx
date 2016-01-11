@@ -7,7 +7,7 @@ import {  requestPlaylistId,
         } from './yt-utils.jsx';
 
 import { VideoItem } from './VideoItem.jsx';
-//import { NavBar } from './NavBar.jsx';
+import { NavBar } from './NavBar.jsx';
 import { arrayShuffle } from './utils';
 import { FAKE_DATA } from './fake-data';
 
@@ -194,15 +194,15 @@ export default class App extends Component {
     return (
     <div>
         <h1>Watch Later</h1>
-        <div>
+        <NavBar>
           <li> <a href="#" onClick={this.reverseOrder}>Reverse</a> </li>
           <li> <a href="#" onClick={this.sortByDuration}>Sort By Length</a> </li>
           <li> <a href="#" onClick={this.sortByRandom}>Random</a> </li>
           <li> <a href="#" onClick={this.selectNone}>Select None</a> </li>
           <li> <a href="#" onClick={this.sendToBottom}>To Bottom</a> </li>
           <li> <a href="#" onClick={this.sendToTop}>To Top</a> </li>
-          <li> <a href="#" onClick={this.savePlaylist}>save</a> </li>
-        </div>
+          <li> <a href="#" onClick={this.savePlaylist}>Save</a> </li>
+        </NavBar>
 
         <div>{this.state.vids.length > 0?
           <div className="vid-list">
