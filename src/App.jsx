@@ -194,7 +194,6 @@ class App extends Component {
   moveVideo = (draggedIdx, hoverIdx) => {
       const vids = this.state.vids;
       const draggedVideo = vids[draggedIdx];
-      console.log("Move Video ", draggedIdx, hoverIdx);
       vids.splice(draggedIdx, 1);
       vids.splice(hoverIdx, 0, draggedVideo);
       this.setState({
