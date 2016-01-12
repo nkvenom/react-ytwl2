@@ -47,8 +47,19 @@ async function requestSinglePage(playlistId, pageToken) {
   return [response.result.nextPageToken, response.result.items];
 }
 
-function combineWithDetails(vids, details) {
-  return Object.assign({}, vids, details);
+function combineWithDetails(vid, detail) {
+  var res = {};
+
+  res.title = vid.snippet.title;
+  res.snippetUrl = vid.snippet.thumbnails.default.url;
+  res = Object.assign(res, detail);
+
+  if(!res.extras) return res;
+//  console.log(res.title, res.extras.channelTitle);
+  res.channelTitle = res.extras.channelTitle? res.extras.channelTitle : '';
+  res.durationSecs = res.extras.durationSecs;
+
+  return res;
 }
 
 async function collectAllPagesCR() {

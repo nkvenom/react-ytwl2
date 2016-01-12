@@ -191,21 +191,20 @@ class App extends Component {
     });
   };
 
-  moveVideo = (dragIdx, hoverIdx) => {
+  moveVideo = (draggedIdx, hoverIdx) => {
       const vids = this.state.vids;
-      const draggedVideo = vids[dragIdx];
-
-      this.setState(update(this.state, {
-        vids: {
-          $splice: [
-            [dragIdx, 1],
-            [hoverIdx, 0, dragIdx]
-          ]
-        }
-      }));
+      const draggedVideo = vids[draggedIdx];
+      console.log("Move Video ", draggedIdx, hoverIdx);
+      vids.splice(draggedIdx, 1);
+      vids.splice(hoverIdx, 0, draggedVideo);
+      this.setState({
+        vids: [...vids]
+      });
   };
 
   render() {
+    console.log(this.state.vids);
+    // channelTitle={v.channelTitle}
     return (
     <div>
         <h1>Watch Later</h1>
@@ -223,8 +222,10 @@ class App extends Component {
           <div className="vid-list">
             {this.state.vids.map((v, i) => <VideoItem key={i}
                       index={i}
-                      snippet={v.snippet}
-                      extras={v.extras}
+                      title={v.title}
+                      snippetUrl={v.snippetUrl}
+                      channelTitle={v.channelTitle}
+                      durationSecs={v.durationSecs}
                       sel={v.selected}
                       onChecked={this.vidSelected}
                       moveVideo={this.moveVideo} />) }
