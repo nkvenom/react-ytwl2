@@ -110,7 +110,7 @@ async function videoDetails(...vidIds) {
   // likeCount: result.items[0].statistics
   var request = gapi.client.youtube.videos.list(requestOptions);
   var response = await request;
-  console.log(response);
+  // console.log(response);
   let result = response.result.items.map((v, i) => {
     let videoId = v.id;
     let duration = v.contentDetails.duration;
@@ -135,7 +135,7 @@ async function videoDetails(...vidIds) {
 
 async function requestWatchLaterId() {
   var playlists = await requestRelatedPlaylists();
-  console.log("requestWatchLaterId", playlists);
+  // console.log("requestWatchLaterId", playlists);
   return playlists.watchLater;
 }
 
@@ -144,6 +144,10 @@ async function videoCategories() {
       part: 'snippet',
       regionCode: 'CO'
     };
+
+    var request = gapi.client.youtube.videoCategories.list(requestOptions);
+    var response = await request;
+    return response.items;
 }
 
 export  {

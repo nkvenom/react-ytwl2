@@ -160,10 +160,6 @@ export default class App extends Component {
     });
   };
 
-  testealo = () => {
-    console.log('Hello');
-  };
-
   selectNone = (evt) => {
     evt.preventDefault();
     var vids = this.state.vids;
@@ -178,7 +174,7 @@ export default class App extends Component {
 
   savePlaylist = (evt) => {
     evt.preventDefault();
-    console.log('savePlaylist');
+    console.log('Saving playlist');
     savePlaylist(this.state.vids);
   };
 
