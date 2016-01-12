@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import update from 'react/lib/update';
+
 import {  requestPlaylistId,
           collectAllPagesCR,
           videoDetails,
@@ -6,12 +8,14 @@ import {  requestPlaylistId,
           savePlaylistItem,
         } from './yt-utils.jsx';
 
-import { VideoItem } from './VideoItem.jsx';
+import VideoItem from './VideoItem.jsx';
 import { NavBar } from './NavBar.jsx';
 import { arrayShuffle } from './utils';
 import { FAKE_DATA } from './fake-data';
+import { DragDropContext } from 'react-dnd';
+import HTML5Backend from 'react-dnd-html5-backend';
 
-export default class App extends Component {
+class App extends Component {
   constructor() {
     super();
     this.state = {
@@ -21,6 +25,7 @@ export default class App extends Component {
 
   componentDidMount() {
     console.log("Component did mount");
+    this.props.apiReady(this.loadVideos);
   }
 
   loadFakeVideos() {
@@ -30,7 +35,7 @@ export default class App extends Component {
   }
 
 
-  authorizationReady = () => {
+  loadVideos = () => {
     console.log("Authorization Ready callback");
     collectAllPagesCR()
     .then(vids => {
@@ -186,6 +191,20 @@ export default class App extends Component {
     });
   };
 
+  moveVideo = (dragIdx, hoverIdx) => {
+      const vids = this.state.vids;
+      const draggedVideo = vids[dragIdx];
+
+      this.setState(update(this.state, {
+        vids: {
+          $splice: [
+            [dragIdx, 1],
+            [hoverIdx, 0, dragIdx]
+          ]
+        }
+      }));
+  };
+
   render() {
     return (
     <div>
@@ -202,7 +221,13 @@ export default class App extends Component {
 
         <div>{this.state.vids.length > 0?
           <div className="vid-list">
-            {this.state.vids.map((v, i) => <VideoItem key={i} index={i} snippet={v.snippet} extras={v.extras} sel={v.selected} onChecked={this.vidSelected}/>) }
+            {this.state.vids.map((v, i) => <VideoItem key={i}
+                      index={i}
+                      snippet={v.snippet}
+                      extras={v.extras}
+                      sel={v.selected}
+                      onChecked={this.vidSelected}
+                      moveVideo={this.moveVideo} />) }
           </div>
           :<div>Loading list</div>}
         </div>
@@ -210,3 +235,5 @@ export default class App extends Component {
     );
   }
 }
+
+export default DragDropContext(HTML5Backend)(App);

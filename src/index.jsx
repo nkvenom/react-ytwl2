@@ -2,5 +2,4 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App.jsx';
 
-var iApp = ReactDOM.render(<App />, document.getElementById('root'));
-registerListener(() => iApp.authorizationReady());
+var iApp = ReactDOM.render(<App apiReady={registerListener}/>, document.getElementById('root'));
