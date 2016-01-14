@@ -1,3 +1,4 @@
+"use strict";
 import React, { Component } from 'react';
 import update from 'react/lib/update';
 
@@ -5,12 +6,14 @@ import {  requestPlaylistId,
           collectAllPagesCR,
           videoDetails,
           savePlaylist,
+          removeVideos,
           savePlaylistItem,
         } from './yt-utils.jsx';
 
 import VideoItem from './VideoItem.jsx';
 import { NavBar } from './NavBar.jsx';
 import { arrayShuffle } from './utils';
+import { spawn } from './promise-utils';
 import { FAKE_DATA } from './fake-data';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
@@ -19,7 +22,8 @@ class App extends Component {
   constructor() {
     super();
     this.state = {
-      vids: []
+      vids: [],
+      isLoading: false
     };
   }
 
@@ -183,6 +187,25 @@ class App extends Component {
     savePlaylist(this.state.vids);
   };
 
+  removeVideos = (evt) => {
+    console.log('Removing selected videos');
+    evt.preventDefault();
+
+    const vids = this.state.vids;
+    var sels = this.getSelected();
+    if(sels.length > 0) {
+      this.setState({ isLoading: true});
+      var promise = removeSelectedVids(vids, sels);
+      console.log('resVids', promise);
+      var that = this;
+      promise.then(resVids => {
+        console.log(resVids);
+        that.setState({ isLoading: false, vids: resVids });
+      });
+    }
+  };
+
+
   // Arrow functions are for autobinding
   vidSelected = (idx) => {
     this.state.vids[idx].selected = !this.state.vids[idx].selected;
@@ -202,12 +225,16 @@ class App extends Component {
   };
 
   render() {
-    console.log(this.state.vids);
-    // channelTitle={v.channelTitle}
+    var { isLoading } = this.state;
     return (
     <div>
+        {isLoading?
+          <div><img src="img/ajax-loader.gif" /> </div>
+        : null}
+
         <h1>Watch Later</h1>
         <NavBar>
+          <li> <a href="#" onClick={this.removeVideos}>Remove</a> </li>
           <li> <a href="#" onClick={this.reverseOrder}>Reverse</a> </li>
           <li> <a href="#" onClick={this.sortByDuration}>Sort By Length</a> </li>
           <li> <a href="#" onClick={this.sortByRandom}>Random</a> </li>
@@ -216,7 +243,6 @@ class App extends Component {
           <li> <a href="#" onClick={this.sendToTop}>To Top</a> </li>
           <li> <a href="#" onClick={this.savePlaylist}>Save</a> </li>
         </NavBar>
-
         <div>{this.state.vids.length > 0?
           <div className="vid-list">
             {this.state.vids.map((v, i) => <VideoItem key={i}
@@ -236,4 +262,28 @@ class App extends Component {
   }
 }
 
-export default DragDropContext(HTML5Backend)(App);
+async function removeSelectedVids(vids, sels) {
+  var iniTime = new Date().getTime();
+  console.log(`00: Removing vids`)
+  var deleted = await removeVideos(sels.map(it => it.vid));
+  console.log(`${new Date().getTime() - iniTime}: Removed`)
+  let resVids = [];
+  let deletedIdx = sels.map(s => s.idx);
+  console.log(deletedIdx);
+  for(let i = 0; i < vids.length; i++) {
+    if(deletedIdx.includes(i) === false) {
+      resVids.push(vids[i]);
+    }
+  }
+
+  return resVids;
+}
+
+function* sayHello() {
+  yield 1;
+}
+
+// Because decorators are still not supported in babel 6
+var DragDropContextHTML5BackendApp = DragDropContext(HTML5Backend)(App);
+console.log(DragDropContextHTML5BackendApp);
+export default DragDropContextHTML5BackendApp;

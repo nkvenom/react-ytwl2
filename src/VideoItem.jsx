@@ -97,13 +97,14 @@ class VideoItem extends Component {
   }
 }
 
-var DragSource1 = DragSource(ItemTypes.YTVIDEO, videoSource, (connect, monitor) => ({
+// Decorate the VideoItem
+var DragSourceVideo = DragSource(ItemTypes.YTVIDEO, videoSource, (connect, monitor) => ({
   connectDragSource: connect.dragSource(),
   isDragging: monitor.isDragging()
 }))(VideoItem);
 
-var DropTarget1 = DropTarget(ItemTypes.YTVIDEO, videoTarget, connect => ({
+var DropTargetDragSourceVideo = DropTarget(ItemTypes.YTVIDEO, videoTarget, connect => ({
   connectDropTarget: connect.dropTarget()
-}))(DragSource1);
+}))(DragSourceVideo);
 
-export default DropTarget1;
+export default DropTargetDragSourceVideo;

@@ -50,12 +50,14 @@ async function requestSinglePage(playlistId, pageToken) {
 function combineWithDetails(vid, detail) {
   var res = {};
 
+  res.id = vid.id;
   res.title = vid.snippet.title;
+  res.playlistId = vid.snippet.playlistId;
+  res.resourceId = vid.snippet.resourceId;
   res.snippetUrl = vid.snippet.thumbnails.default.url;
   res = Object.assign(res, detail);
 
   if(!res.extras) return res;
-//  console.log(res.title, res.extras.channelTitle);
   res.channelTitle = res.extras.channelTitle? res.extras.channelTitle : '';
   res.durationSecs = res.extras.durationSecs;
 
@@ -76,15 +78,14 @@ async function collectAllPagesCR() {
   return plVideos;
 }
 
-// async function savePlaylistItem(plItem, position) {
 async function savePlaylistItem(plItem, position) {
-  console.log(`${position}: ${plItem.snippet.title}`)
+  console.log(`${position}: ${plItem.title}`)
   var requestOptions = {
     id: plItem.id,
     part: 'snippet',
     snippet: {
-      playlistId: plItem.snippet.playlistId,
-      resourceId: plItem.snippet.resourceId,
+      playlistId: plItem.playlistId,
+      resourceId: plItem.resourceId,
       position
     }
   };
@@ -103,7 +104,31 @@ async function savePlaylist(plItems) {
     var r = await savePlaylistItem(pli, i);
 
     // Update the current object with the new position
-    pli.snippet.position = i;
+    pli.position = i;
+  }
+
+  return 0;
+}
+
+async function removePlaylistItem(plItem) {
+
+  console.log(plItem, plItem.id);
+  var requestOptions = {
+    id: plItem.id
+  };
+
+  var request = gapi.client.youtube.playlistItems.delete(requestOptions);
+  var res = await request;
+
+  return res;
+}
+
+async function removeVideos(plItems) {
+  console.log("yt-removeVideos");
+  for(let i = 0; i < plItems.length; i++) {
+    let pli = plItems[i];
+
+    await removePlaylistItem(pli);
   }
 
   return 0;
@@ -168,5 +193,6 @@ export  {
   collectAllPagesCR,
   videoDetails,
   savePlaylist,
-  savePlaylistItem
+  savePlaylistItem,
+  removeVideos
 };
