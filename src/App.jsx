@@ -13,7 +13,6 @@ import {  requestPlaylistId,
 import VideoItem from './VideoItem.jsx';
 import { NavBar } from './NavBar.jsx';
 import { arrayShuffle } from './utils';
-import { spawn } from './promise-utils';
 import { FAKE_DATA } from './fake-data';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
@@ -184,7 +183,9 @@ class App extends Component {
   savePlaylist = (evt) => {
     evt.preventDefault();
     console.log('Saving playlist');
-    savePlaylist(this.state.vids);
+    this.setState({isLoading: true});
+    var promise = savePlaylist(this.state.vids);
+    promise.then( res => this.setState({isLoading: false}));
   };
 
   removeVideos = (evt) => {
@@ -227,10 +228,10 @@ class App extends Component {
   render() {
     var { isLoading } = this.state;
     return (
-    <div>
-        {isLoading?
-          <div><img src="img/ajax-loader.gif" /> </div>
-        : null}
+      <div>
+          {isLoading?
+            <div className="loading-spinner"><img src="img/ajax-loader.gif" /> </div>
+          : null}
 
         <h1>Watch Later</h1>
         <NavBar>
