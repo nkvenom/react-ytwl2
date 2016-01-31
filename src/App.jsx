@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import update from 'react/lib/update';
 
 import {  requestPlaylistId,
+          requestDefaultChannel,
           collectAllPagesCR,
           videoDetails,
           savePlaylist,
@@ -38,14 +39,19 @@ class App extends Component {
   }
 
 
-  loadVideos = () => {
+  loadVideos = (user) => {
     console.log("Authorization Ready callback");
+    this.setState({isLoading: true});
+    console.log('user', user);
     collectAllPagesCR()
     .then(vids => {
       this.setState({
-        vids: vids
+        isLoading: false,
+        vids: vids,
+        user: user
       })
-    });
+    })
+    .catch(e => console.log(e));
   };
 
 
@@ -226,7 +232,9 @@ class App extends Component {
   };
 
   render() {
-    var { isLoading } = this.state;
+    var { isLoading, user } = this.state;
+
+    console.log(user);
     return (
       <div>
           {isLoading?
@@ -234,7 +242,11 @@ class App extends Component {
           : null}
 
         <h1>Watch Later</h1>
-        <NavBar>
+        <NavBar
+          userName={user? user.displayName: ''}
+          url={user? user.url: ''}
+          picture={user? user.picture: ''}
+          >
           <li> <a href="#" onClick={this.removeVideos}>Remove</a> </li>
           <li> <a href="#" onClick={this.reverseOrder}>Reverse</a> </li>
           <li> <a href="#" onClick={this.sortByDuration}>Sort By Length</a> </li>
@@ -286,5 +298,4 @@ function* sayHello() {
 
 // Because decorators are still not supported in babel 6
 var DragDropContextHTML5BackendApp = DragDropContext(HTML5Backend)(App);
-console.log(DragDropContextHTML5BackendApp);
 export default DragDropContextHTML5BackendApp;

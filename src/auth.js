@@ -3,9 +3,8 @@
 // If you run this code from a server other than http://localhost,
 // you need to register your own client ID.
 var OAUTH2_CLIENT_ID = '__YOUR_CLIENT_ID__';
-var OAUTH2_SCOPES = [
-  'https://www.googleapis.com/auth/youtube'
-];
+var OAUTH2_SCOPES =
+  'https://www.googleapis.com/auth/youtube.force-ssl https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/plus.me profile';
 
 // Upon loading, the Google APIs JS client automatically invokes this callback.
 window.googleApiClientReady = function() {
@@ -24,12 +23,13 @@ var  checkAuth = function() {
   gapi.auth.authorize({
     client_id: OAUTH2_CLIENT_ID,
     scope: OAUTH2_SCOPES,
-    immediate: true
+    immediate: false
   }, handleAuthResult);
 }
 
 // Handle the result of a gapi.auth.authorize() call.
 function handleAuthResult(authResult) {
+  console.log(authResult);
   if (authResult && !authResult.error) {
     // Authorization was successful. Hide authorization prompts and show
     // content that should be visible after authorization succeeds.
@@ -49,19 +49,44 @@ function handleAuthResult(authResult) {
   }
 }
 
+function getUserData() {
+  var restRequest = gapi.client.request({
+    'path': '/plus/v1/people/me'
+  });
+
+return restRequest;
+  /*
+  restRequest.then(function(resp) {
+    console.log(resp);
+  }, function(reason) {
+    console.log('Error: ' + reason.result.error.message);
+  });
+
+  */
+}
+
 // Load the client interfaces for the YouTube Analytics and Data APIs, which
 // are required to use the Google APIs JS client. More info is available at
 // https://developers.google.com/api-client-library/javascript/dev/dev_jscript#loading-the-client-library-and-the-api
 function loadAPIClientInterfaces() {
-  gapi.client.load('youtube', 'v3', function() {
-    listeners.forEach(f => {
-      f();
+  getUserData().
+  then(user => {
+    gapi.client.load('youtube', 'v3', function() {
+      listeners.forEach(f => {
+        console.log('user', user);
+        f({
+          displayName: user.result.displayName,
+          url: user.result.url,
+          picture: user.result.image.url
+        });
+      });
     });
-  });
+  },
+    err => console.log(err)
+  );
 }
 
 var listeners = [];
 function registerListener(func) {
-  console.log('Registering new listener=> ', func);
   listeners.push(func);
 }

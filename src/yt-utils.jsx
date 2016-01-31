@@ -19,17 +19,42 @@ function requestPlaylistId() {
 
 async function requestRelatedPlaylists() {
   // See https://developers.google.com/youtube/v3/docs/channels/list
-  var request = gapi.client.youtube.channels.list({
-    mine: true,
-    part: 'contentDetails'
-  });
 
-  var response = await request;
-  if(response.result.items.length > 0) {
-    return response.result.items[0].contentDetails.relatedPlaylists;
+  try {
+    var request = gapi.client.youtube.channels.list({
+      mine: true,
+      part: 'snippet,contentDetails' //'contentDetails'
+    });
+
+    var response = await request;
+    console.log(response);
+    if(response.result.items.length > 0) {
+      return response.result.items[0].contentDetails.relatedPlaylists;
+    }
   }
+  catch(e) {
+    throw e;
+  }
+}
 
-  throw "Could not find any related playlists";
+
+async function requestDefaultChannel() {
+
+  try {
+    var request = gapi.client.youtube.channels.list({
+      forUsername: 'Google',
+      part: 'contentDetails'
+    });
+
+    var response = await request;
+    console.log('requestDefaultChannel', response);
+    if(response.result.items.length > 0) {
+      return response.result.items[0].contentDetails.relatedPlaylists;
+    }
+  }
+  catch(e) {
+    throw e;
+  }
 }
 
 async function requestSinglePage(playlistId, pageToken) {
@@ -66,8 +91,7 @@ function combineWithDetails(vid, detail) {
 
 async function collectAllPagesCR() {
   var plVideos = [], nextPage, page = [];
-  var playlists = await requestRelatedPlaylists();
-  var watchlaterId = playlists.watchLater;
+  var watchlaterId = await requestWatchLaterId();
   do {
     [nextPage, page] = await requestSinglePage(watchlaterId, nextPage);
     var vidIds = page.map(v => v.snippet.resourceId.videoId);
@@ -171,8 +195,12 @@ async function videoDetails(...vidIds) {
 
 async function requestWatchLaterId() {
   var playlists = await requestRelatedPlaylists();
-  // console.log("requestWatchLaterId", playlists);
-  return playlists.watchLater;
+
+  if(playlists !== undefined && playlists.hasOwnProperty('watchLater')) {
+    return playlists.watchLater;
+  }
+
+  throw ["The user has no watchlater playlist", playlists];
 }
 
 async function videoCategories() {
@@ -188,6 +216,7 @@ async function videoCategories() {
 
 export  {
   requestPlaylistId,
+  requestDefaultChannel,
   requestSinglePage,
   requestWatchLaterId,
   collectAllPagesCR,
