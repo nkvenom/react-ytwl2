@@ -4,7 +4,7 @@
 // you need to register your own client ID.
 var OAUTH2_CLIENT_ID = '__YOUR_CLIENT_ID__';
 var OAUTH2_SCOPES =
-  'https://www.googleapis.com/auth/youtube.force-ssl https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/plus.me profile';
+  'https://www.googleapis.com/auth/youtube.force-ssl profile';
 
 // Upon loading, the Google APIs JS client automatically invokes this callback.
 window.googleApiClientReady = function() {
@@ -20,13 +20,31 @@ window.googleApiClientReady = function() {
 // succeeds with no user intervention. Otherwise, it fails and the
 // user interface that prompts for authorization needs to display.
 var  checkAuth = function() {
+  if(OAUTH2_CLIENT_ID && OAUTH2_CLIENT_ID !== '__YOUR_CLIENT_ID__') {
+    tryAuthorize();
+  }
+  else {
+    window.fetch('client-id.txt')
+    .then(resp => {
+      return resp.text();
+    })
+    .then(text => {
+      OAUTH2_CLIENT_ID = text.trim();
+      tryAuthorize();
+    })
+    .catch(function(error) {
+        console.log('There has been a problem retrieving the app client id: ' + error.message);
+    });
+  }
+}
+
+function tryAuthorize() {
   gapi.auth.authorize({
     client_id: OAUTH2_CLIENT_ID,
     scope: OAUTH2_SCOPES,
     immediate: false
   }, handleAuthResult);
 }
-
 // Handle the result of a gapi.auth.authorize() call.
 function handleAuthResult(authResult) {
   console.log(authResult);
