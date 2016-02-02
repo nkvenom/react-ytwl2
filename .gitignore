@@ -1,6 +1,7 @@
 node_modules
 npm-debug.log
 client-id.txt
+client-id-prod.txt
 .DS_Store
 dist
 tmp/
