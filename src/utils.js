@@ -1,16 +1,20 @@
 function divmod(x, y) {
 	return [
 		Math.floor(x / y),
-		x % y		
+		x % y
 	]
 }
 
 function formatDuration(secs) {
-	
+
 	var hours=0, mins = 0;
 	[hours, secs] = divmod(secs, 3600);
-	[mins, secs] = divmod(secs, 60);	
-	
+	[mins, secs] = divmod(secs, 60);
+
+	if(!secs) {
+		return '';
+	}
+
 	var res = '';
 	if(hours > 0) {
 		res += hours + ":";
@@ -33,7 +37,7 @@ function formatDuration(secs) {
 	else {
 		res += secs;
 	}
-	
+
 	return res;
 }
 
@@ -42,7 +46,7 @@ function arrayShuffle(array) {
   while (0 !== idx) {
     randomIndex = Math.floor(Math.random() * idx);
     idx -= 1;
-	[array[idx], array[randomIndex]] = [array[randomIndex], array[idx]]; 
+	[array[idx], array[randomIndex]] = [array[randomIndex], array[idx]];
   }
 
   return array;

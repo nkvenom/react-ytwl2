@@ -51,7 +51,7 @@ body { padding-top: 70px; }
   width: 32px;
 }
 .roundedAvatar img {
-	border-radius: 50%;	
+	border-radius: 50%;
 }
 .roundedAvatar:hover {
 	transition: ease-out 0.2s;
@@ -60,4 +60,8 @@ body { padding-top: 70px; }
 }
 a.roundedAvatar {
   color: transparent;
+}
+
+div.pre-auth {
+  padding-top: 70px;  
 }

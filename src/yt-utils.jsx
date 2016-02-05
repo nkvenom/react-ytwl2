@@ -1,7 +1,6 @@
 "use strict";
 import moment from 'moment';
 
-
 function requestPlaylistId() {
   // See https://developers.google.com/youtube/v3/docs/channels/list
   var request = gapi.client.youtube.channels.list({
@@ -15,28 +14,6 @@ function requestPlaylistId() {
     });
   });
 }
-
-
-async function requestRelatedPlaylists() {
-  // See https://developers.google.com/youtube/v3/docs/channels/list
-
-  try {
-    var request = gapi.client.youtube.channels.list({
-      mine: true,
-      part: 'snippet,contentDetails' //'contentDetails'
-    });
-
-    var response = await request;
-    console.log(response);
-    if(response.result.items.length > 0) {
-      return response.result.items[0].contentDetails.relatedPlaylists;
-    }
-  }
-  catch(e) {
-    throw e;
-  }
-}
-
 
 async function requestDefaultChannel() {
 
@@ -57,6 +34,11 @@ async function requestDefaultChannel() {
   }
 }
 
+async function revokeToken() {
+  console.log("Trying to revoke token");
+  window.fetch(' https://accounts.google.com/o/oauth2/revoke?token=' + gapi.auth.getToken().access_token)
+  .then(x => console.log(x));
+}
 async function requestSinglePage(playlistId, pageToken) {
   var requestOptions = {
     playlistId: playlistId,
@@ -73,20 +55,62 @@ async function requestSinglePage(playlistId, pageToken) {
 }
 
 function combineWithDetails(vid, detail) {
-  var res = {};
+  var result = {};
 
-  res.id = vid.id;
-  res.title = vid.snippet.title;
-  res.playlistId = vid.snippet.playlistId;
-  res.resourceId = vid.snippet.resourceId;
-  res.snippetUrl = vid.snippet.thumbnails.default.url;
-  res = Object.assign(res, detail);
+  result.id = vid.id;
+  result.title = vid.snippet.title;
+  result.playlistId = vid.snippet.playlistId;
+  result.resourceId = vid.snippet.resourceId;
 
-  if(!res.extras) return res;
-  res.channelTitle = res.extras.channelTitle? res.extras.channelTitle : '';
-  res.durationSecs = res.extras.durationSecs;
+  // Posible deleted video
+  if(!vid.snippet.thumbnails) {
+    return result;
+  }
+  result.snippetUrl = vid.snippet.thumbnails.default.url;
+  result = Object.assign(result, detail);
 
-  return res;
+  if(!result.extras) return result;
+  result.channelTitle = result.extras.channelTitle? result.extras.channelTitle : '';
+  result.durationSecs = result.extras.durationSecs;
+
+  return result;
+}
+
+async function requestRelatedPlaylists() {
+  // See https://developers.google.com/youtube/v3/docs/channels/list
+
+  try {
+    var request = gapi.client.youtube.channels.list({
+      mine: true,
+      part: 'snippet,contentDetails' //'contentDetails'
+    });
+
+    var response = await request;
+    console.log('requestRelatedPlaylists=', response);
+    if(response.result.items.length > 0) {
+      return response.result.items[0].contentDetails.relatedPlaylists;
+    }
+  }
+  catch(e) {
+    throw e;
+  }
+}
+
+async function requestWatchLaterId() {
+
+  var request = gapi.client.youtube.channels.list({
+    mine: true,
+    part: 'snippet,contentDetails' //'contentDetails'
+  });
+
+  var response = await request;
+  console.log('requestWatchLaterId=', response);
+
+  if(response.result.items.length > 0) {
+    return response.result.items[0].contentDetails.relatedPlaylists.watchLater;
+  }
+
+  throw "The user has no watchlater playlist, try with another account";
 }
 
 async function collectAllPagesCR() {
@@ -99,11 +123,13 @@ async function collectAllPagesCR() {
     plVideos = plVideos.concat(page.map((v,i) => combineWithDetails(v, vidsDetails[i])));
   } while(nextPage);
 
+
   return plVideos;
 }
 
 async function savePlaylistItem(plItem, position) {
-  console.log(`${position}: ${plItem.title}`)
+  console.log(`${position}: ${plItem.title}`);
+  console.log(plItem);
   var requestOptions = {
     id: plItem.id,
     part: 'snippet',
@@ -114,6 +140,7 @@ async function savePlaylistItem(plItem, position) {
     }
   };
 
+  console.log("requestOptions", requestOptions);
   var request = gapi.client.youtube.playlistItems.update(requestOptions);
 
   var res = await request;
@@ -193,15 +220,7 @@ async function videoDetails(...vidIds) {
   return result;
 }
 
-async function requestWatchLaterId() {
-  var playlists = await requestRelatedPlaylists();
 
-  if(playlists !== undefined && playlists.hasOwnProperty('watchLater')) {
-    return playlists.watchLater;
-  }
-
-  throw ["The user has no watchlater playlist", playlists];
-}
 
 async function videoCategories() {
   var requestOptions = {
@@ -223,5 +242,6 @@ export  {
   videoDetails,
   savePlaylist,
   savePlaylistItem,
-  removeVideos
+  removeVideos,
+  revokeToken
 };

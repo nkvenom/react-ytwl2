@@ -8,13 +8,13 @@ import {  requestPlaylistId,
           videoDetails,
           savePlaylist,
           removeVideos,
+          revokeToken,
           savePlaylistItem,
         } from './yt-utils.jsx';
 
 import VideoItem from './VideoItem.jsx';
 import { NavBar } from './NavBar.jsx';
 import { arrayShuffle } from './utils';
-import { FAKE_DATA } from './fake-data';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 
@@ -23,7 +23,9 @@ class App extends Component {
     super();
     this.state = {
       vids: [],
-      isLoading: false
+      isLoading: false,
+      message: {text: "", type: "notice"},
+      user: {}
     };
   }
 
@@ -31,13 +33,6 @@ class App extends Component {
     console.log("Component did mount");
     this.props.apiReady(this.loadVideos);
   }
-
-  loadFakeVideos() {
-    this.setState({
-      vids: FAKE_DATA
-    });
-  }
-
 
   loadVideos = (user) => {
     console.log("Authorization Ready callback");
@@ -51,7 +46,10 @@ class App extends Component {
         user: user
       })
     })
-    .catch(e => console.log(e));
+    .catch(e => {
+        console.log("==ERROR==", e);
+        this.setState({message: {text: `${e}`, type: "error"}});
+      });
   };
 
 
@@ -98,7 +96,6 @@ class App extends Component {
     return [_vids, selVids];
   };
 
-
   sortByDuration = (evt) => {
     evt.preventDefault();
     var _vids = this.state.vids;
@@ -113,7 +110,6 @@ class App extends Component {
       vids: _vids
     });
   };
-
 
   sendToBottom = (evt) => {
     evt.preventDefault();
@@ -151,7 +147,6 @@ class App extends Component {
       vids: [..._vids]
     });
   };
-
 
   sortByRandom = (evt) =>  {
     evt.preventDefault();
@@ -191,7 +186,7 @@ class App extends Component {
     console.log('Saving playlist');
     this.setState({isLoading: true});
     var promise = savePlaylist(this.state.vids);
-    promise.then( res => this.setState({isLoading: false}));
+    promise.then( res => this.setState({isLoading: false, message: {text: "Playlist saved", type: "notice"}}));
   };
 
   removeVideos = (evt) => {
@@ -212,7 +207,6 @@ class App extends Component {
     }
   };
 
-
   // Arrow functions are for autobinding
   vidSelected = (idx) => {
     this.state.vids[idx].selected = !this.state.vids[idx].selected;
@@ -231,10 +225,13 @@ class App extends Component {
       });
   };
 
+  logout = () => {
+    revokeToken();
+  };
+
   render() {
     var { isLoading, user } = this.state;
-
-    console.log(user);
+    console.log("MSG= ", this.state.message);
     return (
       <div>
           {isLoading?
@@ -242,19 +239,68 @@ class App extends Component {
           : null}
 
         <h1>Watch Later</h1>
+
+        {this.state.message.text != ""?<div className="alert alert-danger" role="alert">
+            <span className="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+            {this.state.message.text}
+          </div>
+        :null}
         <NavBar
           userName={user? user.displayName: ''}
           url={user? user.url: ''}
           picture={user? user.picture: ''}
           >
-          <li> <a href="#" onClick={this.removeVideos}>Remove</a> </li>
-          <li> <a href="#" onClick={this.reverseOrder}>Reverse</a> </li>
-          <li> <a href="#" onClick={this.sortByDuration}>Sort By Length</a> </li>
-          <li> <a href="#" onClick={this.sortByRandom}>Random</a> </li>
-          <li> <a href="#" onClick={this.selectNone}>Select None</a> </li>
-          <li> <a href="#" onClick={this.sendToBottom}>To Bottom</a> </li>
-          <li> <a href="#" onClick={this.sendToTop}>To Top</a> </li>
-          <li> <a href="#" onClick={this.savePlaylist}>Save</a> </li>
+
+          <li>
+            <button type="button" className="btn btn-default btn-md" onClick={this.removeVideos} >
+              <span className="glyphicon glyphicon-trash"> </span> Remove selected
+            </button>
+          </li>
+          <li>
+              <button type="buttom" className="btn btn-default btn-md" onClick={this.reverseOrder} alt="Reverse order">
+                <span className="glyphicon glyphicon-sort"></span>
+                  Reverse Order
+              </button>
+          </li>
+          <li>
+              <button type="buttom" className="btn btn-default btn-md" onClick={this.sortByDuration}>
+                <span className="glyphicon glyphicon-sort-by-attributes"></span>
+                Sort By Length
+              </button>
+          </li>
+          <li>
+              <button type="buttom" className="btn btn-default btn-md" onClick={this.sortByRandom}>
+                <span className="glyphicon glyphicon-random"></span>
+                Random
+              </button>
+          </li>
+          <li>
+              <button type="buttom" className="btn btn-default btn-md" onClick={this.selectNone} alt="Select None">
+                <span className="glyphicon glyphicon-unchecked"></span>
+                Select None
+              </button>
+          </li>
+          <li>
+              <button type="buttom" className="btn btn-default btn-md" onClick={this.sendToBottom}>
+                <span className="glyphicon glyphicon-chevron-up"></span>
+                To Bottom
+              </button>
+          </li>
+          <li>
+              <button type="buttom" className="btn btn-default btn-md" onClick={this.sendToTop}>
+                <span className="glyphicon glyphicon-chevron-down"></span>
+                To Top
+              </button>
+          </li>
+          <li>
+              <button type="buttom" className="btn btn-default btn-md" onClick={this.savePlaylist} alt="Save">
+                <span className="glyphicon glyphicon-floppy-disk"></span>
+                Save
+              </button>
+          </li>
+          <li>
+              <button type="buttom" className="btn btn-default btn-md" onClick={this.logout}>Logout</button>
+          </li>
         </NavBar>
         <div>{this.state.vids.length > 0?
           <div className="vid-list">
@@ -290,10 +336,6 @@ async function removeSelectedVids(vids, sels) {
   }
 
   return resVids;
-}
-
-function* sayHello() {
-  yield 1;
 }
 
 // Because decorators are still not supported in babel 6
